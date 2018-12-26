@@ -1,3 +1,7 @@
  * {
      box-sizing: border-box;
  }
+.imageContainer{
+     padding : 4px;
+     cursor: pointer;
+ }
