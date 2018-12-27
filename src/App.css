@@ -2,6 +2,8 @@
      box-sizing: border-box;
  }
 .imageContainer{
-     padding : 4px;
+     padding : 6px;
      cursor: pointer;
+     border :1px solid #dddddd;
+     border-radius: 4px;
  }

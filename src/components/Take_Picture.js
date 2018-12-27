@@ -4,6 +4,7 @@ import { Dialog } from "@material-ui/core";
 import { withStyles } from "@material-ui/core/styles";
 import SaveIcon from "@material-ui/icons/Save";
 import { PhotoCamera, Close } from "@material-ui/icons/";
+import soundFile from '../audio/camera-shutter-click-03.mp3';
 
 const styles = {
   container: {
@@ -96,13 +97,16 @@ class TakePicture extends Component {
     this.props.sendData(canvas.toDataURL("image/png"));
 
     console.log("capture");
+    var audio = new Audio(soundFile);
+    audio.play();
     img.setAttribute("src", canvas.toDataURL("image/png"));
     img.setAttribute("width", window.innerWidth);
 
     img.style.opacity = 1;
     img.style.transition = "transform 1s";
-    img.style.transform = "scale(0,0)";
-   
+    
+    img.style.transform = `translate(-${video.videoWidth}px,-${video.videoHeight}px)`;
+    
     /*-ms-transform: scale(0.5, 0.5); 
 -webkit-transform: scale(0.5, 0.5);
 transform: scale(0.5, 0.5);*/
