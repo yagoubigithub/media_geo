@@ -3,8 +3,8 @@ import IconButton from "@material-ui/core/IconButton";
 import { Dialog } from "@material-ui/core";
 import { withStyles } from "@material-ui/core/styles";
 import SaveIcon from "@material-ui/icons/Save";
-import { PhotoCamera, Close } from "@material-ui/icons/";
-import soundFile from '../audio/camera-shutter-click-03.mp3';
+import { PhotoCamera, Close, Videocam, Camera,PlayArrow,Pause,Brightness1} from "@material-ui/icons/";
+import soundFile from "../audio/camera-shutter-click-03.mp3";
 
 const styles = {
   container: {
@@ -25,18 +25,22 @@ const styles = {
   },
   img: {
     position: "fixed",
-    top: "25%",
-   
+    top: "25%"
   }
 };
 class TakePicture extends Component {
   state = {
-    open: false,
-    photos: this.props.photos
+    openDialogPicture: false,
+    openDialogVideo: false,
+    photos: this.props.photos,
+    videoData: [],
+    videoRecording : false,
+    iconStopStart :<PlayArrow fontSize="large" />
+   
   };
 
-  handleClickOpen = () => {
-    this.setState({ open: true });
+  handelOpenDialogPicture = () => {
+    this.setState({ openDialogPicture: true });
     setTimeout(function() {
       const video = document.getElementById("video"),
         canvas = document.getElementById("canvas"),
@@ -70,7 +74,15 @@ class TakePicture extends Component {
         },
         function(stream) {
           //
-          video.srcObject = stream;
+          if (window.URL) {
+            try {
+              video.src = window.URL.createObjectURL(stream);
+            } catch (error) {
+              video.srcObject = stream;
+            }
+          } else {
+            video.src = stream;
+          }
           video.play();
         },
         function(error) {
@@ -80,8 +92,11 @@ class TakePicture extends Component {
     }, 500);
   };
 
-  handleClose = () => {
-    this.setState({ open: false });
+  handelcloseDialogPictue = () => {
+   
+    this.setState({ openDialogPicture: false });
+   
+
   };
 
   handelCapture = () => {
@@ -89,10 +104,10 @@ class TakePicture extends Component {
       canvas = document.getElementById("canvas"),
       span_img = document.getElementById("span_img"),
       context = canvas.getContext("2d");
-      span_img.innerHTML ='';
+    span_img.innerHTML = "";
 
-      var img = document.createElement("img");
-      span_img.appendChild(img);
+    var img = document.createElement("img");
+    span_img.appendChild(img);
     context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
     this.props.sendData(canvas.toDataURL("image/png"));
 
@@ -104,38 +119,108 @@ class TakePicture extends Component {
 
     img.style.opacity = 1;
     img.style.transition = "transform 1s";
-    
-    img.style.transform = `translate(-${video.videoWidth}px,-${video.videoHeight}px)`;
-    
-    /*-ms-transform: scale(0.5, 0.5); 
--webkit-transform: scale(0.5, 0.5);
-transform: scale(0.5, 0.5);*/
-/* 
-    let imgData = canvas.toDataURL("image/png");
-   
-    var save_btn = document.getElementById("save_btn");
-    save_btn.style.opacity = 1;
- var xhttp = new XMLHttpRequest();
-    save_btn.addEventListener("click", function() {
-      //save image
-      xhttp.onreadystatechange = function() {
-        if (this.readyState === 4 && this.status === 200) {
-          console.log("saved");
-        }
-      };
-      xhttp.open("POST", "http://localhost/getImage/index.php", false);
-      xhttp.setRequestHeader(
-        "Content-type",
-        "application/x-www-form-urlencoded"
-      );
-      xhttp.send(`imgData=${imgData}`);
-    }); */
+
+    img.style.transform = `translate(-${video.videoWidth}px,-${
+      video.videoHeight
+    }px)`;
   };
+  handelcloseDialogVideo = () => {
+    this.setState({ openDialogVideo: false });
+  };
+  InitVideo = () => {
+    setTimeout(()=> {
+      const video = document.getElementById("video");
+      console.log("initVideo");
+      navigator.getMedia =
+        navigator.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia ||
+        navigator.msGetUserMedia;
+
+      navigator.getMedia(
+        {
+          video: true,
+          audio: true
+        },
+      (stream)=> {
+          //
+          
+          
+          if (window.URL) {
+            try {
+              video.src = window.URL.createObjectURL(stream);
+            } catch (error) {
+              video.srcObject = stream;
+            }
+          } else {
+            video.src = stream;
+          }
+          video.play();
+          const mediaRecorder = new MediaRecorder(stream);
+          document
+            .getElementById("startRecordBtn")
+            .addEventListener("click", ()=> {
+              if(this.state.videoRecording){
+                console.log("stop record");
+                mediaRecorder.stop();
+                document.getElementById('video').pause();
+                this.setState({videoRecording : false});
+                this.setState({iconStopStart : <PlayArrow fontSize="large" /> });
+  
+              }else{
+                console.log("start record");
+                mediaRecorder.start();
+                this.setState({videoRecording : true});
+                this.setState({iconStopStart : <Pause fontSize="large" /> });
+  
+              }
+            });
+          let videoData = [];
+          mediaRecorder.ondataavailable = (ev) => {
+            console.log("ondataavailable");
+            videoData.push(ev.data);
+          };
+          mediaRecorder.onstop = evt => {
+            console.log("onStop");
+            let blob = new Blob(videoData, { type: "video/mp4" });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement("a");
+            a.style.display = "none";
+            a.href = url;
+            a.target = "_blank";
+            
+            document.body.appendChild(a);
+
+            a.click();
+          };
+        },
+        function(error) {
+          //error
+          console.log(error);
+        }
+      );
+    }, 500);
+  };
+  closePictureOpenVideo = () => {
+    this.setState({ openDialogVideo: true });
+    this.setState({ openDialogPicture: false });
+    this.InitVideo();
+  };
+  closeVideoOpenPicture = () => {
+    this.setState({ openDialogVideo: false });
+    this.handelOpenDialogPicture();
+  };
+  StartRecord = () => {};
   render() {
     const { classes } = this.props;
+    // console.log(this.state.videoData);
     return (
       <div>
-        <Dialog fullScreen open={this.state.open} onClose={this.handleClose}>
+        <Dialog
+          fullScreen
+          open={this.state.openDialogPicture}
+          onClose={this.handelcloseDialogPictue}
+        >
           <div className={classes.container}>
             <video className={classes.video} id="video" autoPlay />
 
@@ -143,19 +228,27 @@ transform: scale(0.5, 0.5);*/
             <span id="span_img" className={classes.img} />
 
             <IconButton
-              onClick={this.handleClose}
+              onClick={this.handelcloseDialogPictue}
               style={{ position: "absolute" }}
               aria-label="Close"
             >
-              <Close />
+              <Close fontSize="large" />
             </IconButton>
             <IconButton
               style={{ position: "absolute", bottom: 0, right: 0 }}
+              onClick={this.closePictureOpenVideo}
+            >
+              <Videocam fontSize="large" />
+            </IconButton>
+
+            <IconButton
+              style={{ position: "absolute", bottom: 0, left: "47vw" }}
               onClick={this.handelCapture}
               id="capture"
             >
-              <PhotoCamera />
+              <Camera fontSize="large" />
             </IconButton>
+
             <IconButton
               id="save_btn"
               style={{ position: "absolute", bottom: 0, left: 0, opacity: 0 }}
@@ -165,9 +258,48 @@ transform: scale(0.5, 0.5);*/
             </IconButton>
           </div>
         </Dialog>
+        <Dialog
+          fullScreen
+          open={this.state.openDialogVideo}
+          onClose={this.handelcloseDialogVideo}
+        >
+          <div>
+            <IconButton
+              onClick={this.handelcloseDialogVideo}
+              style={{ position: "absolute" }}
+              aria-label="Close"
+            >
+              <Close fontSize="large" />
+            </IconButton>
 
+            <video className={classes.video} id="video" autoPlay />
+            <IconButton
+              style={{ position: "absolute", bottom: 0, right: 0 }}
+              onClick={this.closeVideoOpenPicture}
+            >
+              <PhotoCamera fontSize="large" />
+            </IconButton>
+
+            <IconButton
+              style={{ position: "absolute", bottom: 0, left: "47vw" }}
+              
+              id="startRecordBtn"
+            >
+            {this.state.iconStopStart}
+              
+            </IconButton>
+           
+            <IconButton
+              style={{ position: "absolute", top: 0, right: 0 }}
+              
+            >
+            {this.state.videoRecording ?  <Brightness1   color="error"/> : null}
+             
+            </IconButton>
+          </div>
+        </Dialog>
         <IconButton
-          onClick={this.handleClickOpen}
+          onClick={this.handelOpenDialogPicture}
           variant="contained"
           color="primary"
         >
