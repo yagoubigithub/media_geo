@@ -10,13 +10,16 @@ import {
   GridList,
   GridListTile,
   IconButton,
-  FormControlLabel
+  FormControlLabel,
+  Dialog
 } from "@material-ui/core";
 import getLocation from "./getGeo";
+import Take_Video from "./components/Take_Video";
 class App extends Component {
   state = {
     photos: [],
-    selectAll: false
+    selectAll: false,
+    openDialog : false
   };
   getData = val => {
     let photos = [...this.state.photos];
@@ -76,11 +79,28 @@ class App extends Component {
       this.setState({photos});
     }
   };
-
+  
+  handelcloseDialog=()=>{
+    this.setState({openDialog : false});
+  }
+  handelOpenDialog = () => {
+    this.setState({openDialog : true});
+  }
   render() {
     return (
       <div className="App">
-        <TakePicture sendData={this.getData} photos={this.state.photos} />
+<Button
+onClick={this.handelOpenDialog} >Open Video</Button>
+<Dialog 
+
+fullScreen
+          open={this.state.openDialog}
+          onClose={this.handelcloseDialog}>
+
+<Take_Video handelcloseDialog={this.handelcloseDialog} />
+</Dialog>
+
+       {/*  <TakePicture sendData={this.getData} photos={this.state.photos} />
         <Button onClick={getLocation} variant="contained">
           get Geo
         </Button>
@@ -122,7 +142,7 @@ class App extends Component {
               </div>
             </GridListTile>
           ))}
-        </GridList>
+        </GridList> */}
       </div>
     );
   }
