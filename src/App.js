@@ -9,7 +9,6 @@ import {
   Grid,
   GridList,
   GridListTile,
-  GridListTileBar,
   IconButton,
   FormControlLabel
 } from "@material-ui/core";
@@ -117,7 +116,7 @@ class App extends Component {
               >
                 <img
                   height="136"
-                  style={{ maxWidth: "100%", maxHeight: "100%" }}
+                  style={{ maxWidth: "100%", maxHeight: "100%",width : '100%' }}
                   src={tile.imageData}
                 />
               </div>

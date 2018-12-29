@@ -3,7 +3,7 @@ import IconButton from "@material-ui/core/IconButton";
 import { Dialog } from "@material-ui/core";
 import { withStyles } from "@material-ui/core/styles";
 import SaveIcon from "@material-ui/icons/Save";
-import { PhotoCamera, Close, Videocam, Camera,PlayArrow,Pause,Brightness1} from "@material-ui/icons/";
+import { PhotoCamera, Close, Videocam, Camera,PlayArrow,Pause,Brightness1,CameraFront,CameraRear} from "@material-ui/icons/";
 import soundFile from "../audio/camera-shutter-click-03.mp3";
 
 const styles = {
@@ -11,12 +11,13 @@ const styles = {
     position: "relative",
     display: "block",
     height: "100%",
-    background: "#ddd"
+    background: "#ddd",
+    overflow : 'hidden',
+    maxWidth : '100%'
   },
   video: {
     position: "fixed",
     background: "#555",
-    top: "25%",
     maxWidth: "100%"
   },
   canvas: {
@@ -25,7 +26,7 @@ const styles = {
   },
   img: {
     position: "fixed",
-    top: "25%"
+   
   }
 };
 class TakePicture extends Component {
@@ -35,13 +36,15 @@ class TakePicture extends Component {
     photos: this.props.photos,
     videoData: [],
     videoRecording : false,
-    iconStopStart :<PlayArrow fontSize="large" />
+    iconStopStart :<PlayArrow fontSize="large" />,
+    facingMode : { exact: "environment" }
+    
    
   };
 
   handelOpenDialogPicture = () => {
     this.setState({ openDialogPicture: true });
-    setTimeout(function() {
+    setTimeout(()=> {
       const video = document.getElementById("video"),
         canvas = document.getElementById("canvas"),
         capture = document.getElementById("capture");
@@ -66,13 +69,10 @@ class TakePicture extends Component {
 
       navigator.getMedia(
         {
-          video: {
-            width: { min: window.innerWidth },
-            height: { min: window.innerHeight }
-          },
+          video:{facingMode: "user"},
           audio: false
         },
-        function(stream) {
+        (stream)=> {
           //
           if (window.URL) {
             try {
@@ -85,7 +85,7 @@ class TakePicture extends Component {
           }
           video.play();
         },
-        function(error) {
+        (error)=> {
           //error
         }
       );
@@ -139,8 +139,8 @@ class TakePicture extends Component {
 
       navigator.getMedia(
         {
-          video: true,
-          audio: true
+          video:{facingMode : "user"} ,
+          audio: false
         },
       (stream)=> {
           //
@@ -163,7 +163,7 @@ class TakePicture extends Component {
               if(this.state.videoRecording){
                 console.log("stop record");
                 mediaRecorder.stop();
-                document.getElementById('video').pause();
+                
                 this.setState({videoRecording : false});
                 this.setState({iconStopStart : <PlayArrow fontSize="large" /> });
   
@@ -187,6 +187,7 @@ class TakePicture extends Component {
             let a = document.createElement("a");
             a.style.display = "none";
             a.href = url;
+            a.setAttribute("download","video");
             a.target = "_blank";
             
             document.body.appendChild(a);
@@ -210,9 +211,22 @@ class TakePicture extends Component {
     this.setState({ openDialogVideo: false });
     this.handelOpenDialogPicture();
   };
-  StartRecord = () => {};
+  switchFacingMode =()=>{
+    if(this.state.facingMode === "user"){
+     this.setState({facingMode : { exact: "environment" }})
+
+    }else{
+      this.setState({facingMode :"user"})
+    }
+    this.handelcloseDialogVideo();
+    this.closePictureOpenVideo();
+    
+  }
+ 
+  
   render() {
     const { classes } = this.props;
+    console.log(this.state.facingMode);
     // console.log(this.state.videoData);
     return (
       <div>
@@ -256,6 +270,7 @@ class TakePicture extends Component {
             >
               <SaveIcon />
             </IconButton>
+            
           </div>
         </Dialog>
         <Dialog
@@ -263,10 +278,10 @@ class TakePicture extends Component {
           open={this.state.openDialogVideo}
           onClose={this.handelcloseDialogVideo}
         >
-          <div>
+          <div className={classes.container}>
             <IconButton
               onClick={this.handelcloseDialogVideo}
-              style={{ position: "absolute" }}
+              style={{ position: "absolute",top: 0, left: 0,zIndex : 20 }}
               aria-label="Close"
             >
               <Close fontSize="large" />
@@ -296,6 +311,15 @@ class TakePicture extends Component {
             {this.state.videoRecording ?  <Brightness1   color="error"/> : null}
              
             </IconButton>
+            <IconButton
+              style={{ position: "absolute", top: '5%', right: 0 }}
+              onClick={this.switchFacingMode}
+              
+            >
+            {this.state.facingMode === "user" ?  <CameraRear   fontSize="large"/> : <CameraFront   fontSize="large"/>}
+             
+            </IconButton>
+          
           </div>
         </Dialog>
         <IconButton
